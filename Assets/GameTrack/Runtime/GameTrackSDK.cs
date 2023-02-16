@@ -5,6 +5,9 @@ using System.Runtime.InteropServices;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 public class GameTrackSDK : MonoBehaviour
 {
@@ -25,6 +28,8 @@ public class GameTrackSDK : MonoBehaviour
     
     [DllImport("track")]
     private static extern IntPtr /* char const * */ GameTrack_GetToken();
+
+    private UGUITracker uGUITracker;
 
     // Init GamePerf SDK
     private void Start()
@@ -47,6 +52,12 @@ public class GameTrackSDK : MonoBehaviour
         string logFile = Marshal.PtrToStringAnsi(_logFile);
         // Upload Last Files
         StartCoroutine(UploadData(logFile));
+
+        // Track Scene
+        SceneManager.sceneLoaded += SceneLoadedTrack;
+        // Track UI Event
+        uGUITracker = new UGUITracker(this);
+        uGUITracker.Run();
         #endif
     }
 
@@ -59,17 +70,17 @@ public class GameTrackSDK : MonoBehaviour
     }
     
     // Track User Click 
-    public void UserClickTrack()
+    public void UserClickTrack(string eventName)
     {
         //Demo: GameTrack_Event("Button1"); 
         //Todo: @lixiaofeng
-        GameTrack_Event("Button1"); 
+        GameTrack_Event(eventName); 
     }
 
     // Track Scene
-    public void OnSceneChange()
+    public void OnSceneChange(string sceneName)
     {
-        GameTrack_Scene("Scene...");
+        GameTrack_Scene(sceneName);
     }
 
     // Save GamePerf
@@ -124,4 +135,71 @@ public class GameTrackSDK : MonoBehaviour
             }
         }
     }
+
+    private void SceneLoadedTrack(Scene scene, LoadSceneMode mode)
+    {
+        OnSceneChange(scene.name);
+    }
+
  }
+
+public class UGUITracker
+{
+    private GameTrackSDK gameTrackSDK;
+
+    private int curTouchCount = 0;
+
+    public UGUITracker(GameTrackSDK gameTrackSDK)
+    {
+        this.gameTrackSDK = gameTrackSDK;
+    }
+
+    public void Run()
+    {
+        gameTrackSDK.StartCoroutine(ClickTrack());
+    }
+
+    private System.Collections.IEnumerator ClickTrack()
+    {
+        while (true)
+        {
+            if (IsPressDown())
+            {
+                Vector2 pos = Input.mousePosition;
+                Touch touch = new Touch { position = pos };
+                PointerEventData pointerEventData = MockUpPointerInputModule.GetPointerEventData(touch);
+                if (pointerEventData.pointerPress != null)
+                {
+                    GameObject curPressGameObject = pointerEventData.pointerPress;
+                    Selectable selectable = curPressGameObject.GetComponent<Selectable>();
+                    gameTrackSDK.UserClickTrack(GetGameObjectPath(curPressGameObject));
+                }
+            }
+
+            curTouchCount = Input.touchCount;
+            yield return null;
+        }
+    }
+
+    private bool IsPressDown()
+    {
+        if (Input.GetMouseButtonDown(0))
+            return true;
+        if (Input.touchCount == 1 && curTouchCount == 0)
+            return true;
+        return false;
+    }
+
+    private string GetGameObjectPath(GameObject obj)
+    {
+        if (obj == null) return "null";
+        string path = "/" + obj.name;
+        Transform parentTransform = obj.transform.parent;
+        while (parentTransform != null)
+        {
+            path = "/" + parentTransform.name + path;
+            parentTransform = parentTransform.parent;
+        }
+        return path;
+    }
+}
