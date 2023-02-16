@@ -9,22 +9,22 @@ using UnityEngine.Networking;
 public class GameTrackSDK : MonoBehaviour
 {
     [DllImport("track")]
-    private static extern IntPtr GaemTrack_Init(string persistentDataPath, string track_uuid, string gpu_vendor);
+    private static extern IntPtr GameTrack_Init(string persistentDataPath, string track_uuid, string gpu_vendor);
     
     [DllImport("track")]
-    private static extern void GaemTrack_Update(float unscaledDeltaTime, int targetFrameRate);
+    private static extern void GameTrack_Update(float unscaledDeltaTime, int targetFrameRate);
 
     [DllImport("track")]
-    private static extern void GaemTrack_Flush();
+    private static extern void GameTrack_Flush();
     
     [DllImport("track")]
-    private static extern void GaemTrack_Event(string eventName);
+    private static extern void GameTrack_Event(string eventName);
     
     [DllImport("track")]
-    private static extern void GaemTrack_Scene(string scene_name);
+    private static extern void GameTrack_Scene(string scene_name);
     
     [DllImport("track")]
-    private static extern IntPtr /* char const * */ GaemTrack_GetToken();
+    private static extern IntPtr /* char const * */ GameTrack_GetToken();
 
     // Init GamePerf SDK
     private void Start()
@@ -43,7 +43,7 @@ public class GameTrackSDK : MonoBehaviour
         baseInfo.AppendFormat("{0},{1},{2},{3},{4},{5},{6}", Application.identifier, SystemInfo.operatingSystem, SystemInfo.deviceModel, SystemInfo.deviceName, SystemInfo.graphicsDeviceVendor, SystemInfo.deviceName, SystemInfo.graphicsDeviceVersion);
         
         // Init
-        var _logFile = GaemTrack_Init(Application.persistentDataPath, localUUID, baseInfo.ToString());
+        var _logFile = GameTrack_Init(Application.persistentDataPath, localUUID, baseInfo.ToString());
         string logFile = Marshal.PtrToStringAnsi(_logFile);
         // Upload Last Files
         StartCoroutine(UploadData(logFile));
@@ -54,28 +54,28 @@ public class GameTrackSDK : MonoBehaviour
     void Update()
     {
 #if UNITY_ANDROID && !UNITY_EDITOR
-        GaemTrack_Update(Time.unscaledDeltaTime, Application.targetFrameRate);
+        GameTrack_Update(Time.unscaledDeltaTime, Application.targetFrameRate);
 #endif
     }
     
     // Track User Click 
     public void UserClickTrack()
     {
-        //Demo: GaemTrack_Event("Button1"); 
+        //Demo: GameTrack_Event("Button1"); 
         //Todo: @lixiaofeng
-        GaemTrack_Event("Button1"); 
+        GameTrack_Event("Button1"); 
     }
 
     // Track Scene
     public void OnSceneChange()
     {
-        GaemTrack_Scene("Scene...");
+        GameTrack_Scene("Scene...");
     }
 
     // Save GamePerf
     // public void Save()
     // {
-    //     GaemTrack_Save(Application.persistentDataPath + "/tmp.txt");
+    //     GameTrack_Save(Application.persistentDataPath + "/tmp.txt");
     // }
 
     private void OnApplicationPause(bool pauseStatus)
@@ -84,14 +84,14 @@ public class GameTrackSDK : MonoBehaviour
         // enter background
         if (pauseStatus == true)
         {
-            GaemTrack_Flush();
+            GameTrack_Flush();
         }
 #endif
     }
     
     IEnumerator UploadData(string currentFile)
     {
-        var token = Marshal.PtrToStringAnsi(GaemTrack_GetToken());
+        var token = Marshal.PtrToStringAnsi(GameTrack_GetToken());
         DirectoryInfo directory = new DirectoryInfo(Application.persistentDataPath + "/track_data");
         foreach (FileInfo file in directory.GetFiles())
         {
