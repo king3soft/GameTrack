@@ -6,13 +6,11 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using UnityEngine.EventSystems;
 
 public class GameTrackSDK : MonoBehaviour
 {
     [DllImport("track")]
-    private static extern IntPtr GameTrack_Init(string persistentDataPath, string track_uuid, string gpu_vendor);
+    private static extern IntPtr GameTrack_Init(string persistentDataPath, string trackUuid, string gpuVendor);
     
     [DllImport("track")]
     private static extern void GameTrack_Update(float unscaledDeltaTime, int targetFrameRate);
@@ -21,15 +19,13 @@ public class GameTrackSDK : MonoBehaviour
     private static extern void GameTrack_Flush();
     
     [DllImport("track")]
-    private static extern void GameTrack_Event(string eventName);
+    public static extern void GameTrack_Event(string eventName);
     
     [DllImport("track")]
-    private static extern void GameTrack_Scene(string scene_name);
+    private static extern void GameTrack_Scene(string sceneName);
     
     [DllImport("track")]
     private static extern IntPtr /* char const * */ GameTrack_GetToken();
-
-    private UGUITracker uGUITracker;
 
     // Init GamePerf SDK
     private void Start()
@@ -55,9 +51,9 @@ public class GameTrackSDK : MonoBehaviour
 
         // Track Scene
         SceneManager.sceneLoaded += SceneLoadedTrack;
+        
         // Track UI Event
-        uGUITracker = new UGUITracker(this);
-        uGUITracker.Run();
+        gameObject.AddComponent<UGUITracker>();
         #endif
     }
 
@@ -78,11 +74,11 @@ public class GameTrackSDK : MonoBehaviour
     }
 
     // Track Scene
-    public void OnSceneChange(string sceneName)
+    private void SceneLoadedTrack(Scene scene, LoadSceneMode mode)
     {
-        GameTrack_Scene(sceneName);
+        GameTrack_Scene(scene.name);
     }
-
+    
     // Save GamePerf
     // public void Save()
     // {
@@ -108,6 +104,12 @@ public class GameTrackSDK : MonoBehaviour
         {
             if(file.FullName.Equals(currentFile))
                 continue;
+            if (file.Length == 0)
+            {
+                File.Delete(file.FullName);
+                Debug.LogFormat("File size is 0 delete: {0}", file);
+                continue;
+            }
             if (!File.Exists(file.FullName))
             {
                 Debug.LogFormat("File does not exist: {0}", file);
@@ -134,72 +136,5 @@ public class GameTrackSDK : MonoBehaviour
                 File.Delete(file.FullName);
             }
         }
-    }
-
-    private void SceneLoadedTrack(Scene scene, LoadSceneMode mode)
-    {
-        OnSceneChange(scene.name);
-    }
-
- }
-
-public class UGUITracker
-{
-    private GameTrackSDK gameTrackSDK;
-
-    private int curTouchCount = 0;
-
-    public UGUITracker(GameTrackSDK gameTrackSDK)
-    {
-        this.gameTrackSDK = gameTrackSDK;
-    }
-
-    public void Run()
-    {
-        gameTrackSDK.StartCoroutine(ClickTrack());
-    }
-
-    private System.Collections.IEnumerator ClickTrack()
-    {
-        while (true)
-        {
-            if (IsPressDown())
-            {
-                Vector2 pos = Input.mousePosition;
-                Touch touch = new Touch { position = pos };
-                PointerEventData pointerEventData = MockUpPointerInputModule.GetPointerEventData(touch);
-                if (pointerEventData.pointerPress != null)
-                {
-                    GameObject curPressGameObject = pointerEventData.pointerPress;
-                    Selectable selectable = curPressGameObject.GetComponent<Selectable>();
-                    gameTrackSDK.UserClickTrack(GetGameObjectPath(curPressGameObject));
-                }
-            }
-
-            curTouchCount = Input.touchCount;
-            yield return null;
-        }
-    }
-
-    private bool IsPressDown()
-    {
-        if (Input.GetMouseButtonDown(0))
-            return true;
-        if (Input.touchCount == 1 && curTouchCount == 0)
-            return true;
-        return false;
-    }
-
-    private string GetGameObjectPath(GameObject obj)
-    {
-        if (obj == null) return "null";
-        string path = "/" + obj.name;
-        Transform parentTransform = obj.transform.parent;
-        while (parentTransform != null)
-        {
-            path = "/" + parentTransform.name + path;
-            parentTransform = parentTransform.parent;
-        }
-        return path;
     }
 }
