@@ -45,5 +45,17 @@ public static class MinioUtils
             return $"AWS {accessKey}:{Convert.ToBase64String(hashmessage)}";
         }
     }
+}
 
+public static class HTTPUtils
+{
+    private static readonly string HttpHost = "10.11.176.109:7000/upload";
+    public static UnityWebRequest CreateUploadFileRequest(string filePath, string fileName)
+    {
+        byte[] fileData = File.ReadAllBytes(filePath);
+        WWWForm form = new WWWForm();
+        form.AddBinaryData("data", fileData);
+        UnityWebRequest request = UnityWebRequest.Post(HttpHost + "/" + fileName, form);
+        return request;
+    }
 }
