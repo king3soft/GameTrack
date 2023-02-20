@@ -30,7 +30,7 @@ public class GameTrackSDK : MonoBehaviour
     // Init GamePerf SDK
     private void Start()
     {
-        #if UNITY_ANDROID && !UNITY_EDITOR
+#if UNITY_ANDROID && !UNITY_EDITOR
         // UUID
         var localUUID = PlayerPrefs.GetString("track_uuid");
         if (string.IsNullOrEmpty(localUUID))
@@ -48,13 +48,15 @@ public class GameTrackSDK : MonoBehaviour
         string logFile = Marshal.PtrToStringAnsi(_logFile);
         // Upload Last Files
         StartCoroutine(UploadData(logFile));
+        // send to minio
+        StartCoroutine(MinioUpdateFile(logFile));
 
         // Track Scene
         SceneManager.sceneLoaded += SceneLoadedTrack;
         
         // Track UI Event
         gameObject.AddComponent<UGUITracker>();
-        #endif
+#endif
     }
 
     // Update is called once per frame
@@ -95,7 +97,40 @@ public class GameTrackSDK : MonoBehaviour
         }
 #endif
     }
-    
+
+    IEnumerator MinioUpdateFile(string currentFile)
+    {
+        DirectoryInfo directory = new DirectoryInfo(Application.persistentDataPath + "/track_data");
+        foreach (FileInfo file in directory.GetFiles())
+        {
+            if (file.FullName.Equals(currentFile))
+                continue;
+            if (file.Length == 0)
+            {
+                File.Delete(file.FullName);
+                Debug.LogFormat("File size is 0 delete: {0}", file);
+                continue;
+            }
+            if (!File.Exists(file.FullName))
+            {
+                Debug.LogFormat("File does not exist: {0}", file);
+                continue;
+            }
+            UnityWebRequest www = MinioUtils.CreateUploadFileRequest("gametrack", file.FullName);
+            yield return www.SendWebRequest();
+            if (www.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogFormat("minio upload file: {0} error: {1} / {2}", file, www.error, www.result);
+            }
+            else
+            {
+                string text = www.downloadHandler.text;
+                Debug.Log("minio upload succeed:" + text);
+                File.Delete(file.FullName);
+            }
+        }
+    }
+
     IEnumerator UploadData(string currentFile)
     {
         var token = Marshal.PtrToStringAnsi(GameTrack_GetToken());
