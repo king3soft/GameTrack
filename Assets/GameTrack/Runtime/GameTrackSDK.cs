@@ -58,7 +58,7 @@ public class GameTrackSDK : MonoBehaviour
         // send to minio
         StartCoroutine(MinioUpdateFile(logFile));
         // send to web
-        StartCoroutine(WebPostUpdateFile(logFile));
+        // StartCoroutine(WebPostUpdateFile(logFile));
 
         // Track Scene
         SceneManager.sceneLoaded += SceneLoadedTrack;
