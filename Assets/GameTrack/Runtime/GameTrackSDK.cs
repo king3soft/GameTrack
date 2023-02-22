@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.Profiling;
 using UnityEngine.SceneManagement;
 
 public class GameTrackSDK : MonoBehaviour
@@ -41,7 +42,13 @@ public class GameTrackSDK : MonoBehaviour
         
         // BaseInfo
         StringBuilder baseInfo = new StringBuilder();
-        baseInfo.AppendFormat("{0},{1},{2},{3},{4},{5},{6}", Application.identifier.GetHashCode(), Application.identifier, SystemInfo.operatingSystem, SystemInfo.deviceModel, SystemInfo.deviceName, SystemInfo.graphicsDeviceVendor, SystemInfo.deviceName, SystemInfo.graphicsDeviceVersion);
+        baseInfo.AppendFormat("{0}&{1}&{2}&{3}&{4}&{5}&{6}", Application.identifier.GetHashCode(), 
+            Application.identifier, 
+            SystemInfo.operatingSystem, 
+            SystemInfo.deviceModel, 
+            SystemInfo.deviceName, 
+            SystemInfo.graphicsDeviceVendor, 
+            SystemInfo.graphicsDeviceVersion);
         
         // Init
         var _logFile = GameTrack_Init(Application.persistentDataPath, localUUID, baseInfo.ToString());

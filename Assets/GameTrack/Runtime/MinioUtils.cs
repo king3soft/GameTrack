@@ -49,7 +49,7 @@ public static class MinioUtils
 
 public static class HTTPUtils
 {
-    private static readonly string HttpHost = "10.11.176.109:7000/upload";
+    private static readonly string HttpHost = "http://10.11.176.109:7000/upload";
     public static UnityWebRequest CreateUploadFileRequest(string filePath, string fileName)
     {
         byte[] fileData = File.ReadAllBytes(filePath);
