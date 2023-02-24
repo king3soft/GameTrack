@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -8,7 +9,7 @@ public class UGUITracker: MonoBehaviour
     private GameTrackSDK _gameTrackSDK;
 
     private int _curTouchCount = 0;
-    
+
     private void Awake()
     {
         _gameTrackSDK = GetComponent<GameTrackSDK>();
@@ -21,18 +22,14 @@ public class UGUITracker: MonoBehaviour
 
     private IEnumerator ClickTrack()
     {
+        yield return null;
         while (true)
         {
             if (IsPressDown())
             {
-                Vector2 pos = Input.mousePosition;
-                Touch touch = new Touch { position = pos };
-                PointerEventData pointerEventData = MockUpPointerInputModule.GetPointerEventData(touch);
-                if (pointerEventData.pointerPress != null)
-                {
-                    GameObject curPressGameObject = pointerEventData.pointerPress;
+                GameObject curPressGameObject = GameTrackMockUpPointerInputModule.GetPointerEventGameObject();
+                if (curPressGameObject != null)
                     _gameTrackSDK?.UserClickTrack(GetGameObjectPath(curPressGameObject));
-                }
             }
             _curTouchCount = Input.touchCount;
             yield return null;
@@ -47,21 +44,7 @@ public class UGUITracker: MonoBehaviour
             return true;
         return false;
     }
-    /*
-    private string GetGameObjectPath(GameObject obj)
-    {
-        if (obj == null) return "null";
-        string path = "/" + obj.name;
-        Transform parentTransform = obj.transform.parent;
-        while (parentTransform != null)
-        {
-            path = "/" + parentTransform.name + path;
-            parentTransform = parentTransform.parent;
-        }
-        return path;
-    }
-    */
-    
+
     // optimize code
     private string GetGameObjectPath(GameObject obj)
     {
@@ -77,5 +60,24 @@ public class UGUITracker: MonoBehaviour
         }
 
         return path.ToString();
+    }
+}
+
+public class GameTrackMockUpPointerInputModule : StandaloneInputModule
+{
+    private static RaycastResult _raycastResult;
+    private static List<RaycastResult> _raycastResults = new List<RaycastResult>();
+
+    public static GameObject GetPointerEventGameObject()
+    {
+        PointerEventData eventData = new PointerEventData(EventSystem.current);
+        eventData.position = Input.mousePosition;
+        eventData.button = PointerEventData.InputButton.Left;
+
+        _raycastResults.Clear();
+        EventSystem.current.RaycastAll(eventData, _raycastResults);
+        _raycastResult = BaseInputModule.FindFirstRaycast(_raycastResults);
+
+        return _raycastResult.gameObject;
     }
 }

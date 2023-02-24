@@ -72,8 +72,8 @@ public class GameTrackSDK : MonoBehaviour
         SceneManager.sceneLoaded += SceneLoadedTrack;
         
         // Track UI Event
-        // gameObject.AddComponent<UGUITracker>();
-        
+        gameObject.AddComponent<UGUITracker>();
+
         Debug.Log("GameTrack OnStart");
 #endif
     }
@@ -84,19 +84,19 @@ public class GameTrackSDK : MonoBehaviour
 #if UNITY_ANDROID && !UNITY_EDITOR
         GameTrack_Update(Time.unscaledDeltaTime, Application.targetFrameRate);
 #endif
-        if (Input.GetMouseButtonDown(0)) //检测鼠标左键是否按下
-        {
-            PointerEventData pointerEventData = new PointerEventData(EventSystem.current); //创建一个PointerEventData
-            pointerEventData.position = Input.mousePosition; //设置PointerEventData的位置为鼠标位置
-            List<RaycastResult> results = new List<RaycastResult>(); //创建一个RaycastResult列表
-            EventSystem.current.RaycastAll(pointerEventData, results); //将当前事件系统下所有UI元素都投射一遍射线，并将结果存储在RaycastResult列表中
-            if (results.Count > 0) //如果结果列表不为空
-            {
-                GameObject clickedObject = results[0].gameObject; //获取被点击的UI对象
+        //if (Input.GetMouseButtonDown(0)) //检测鼠标左键是否按下
+        //{
+        //    PointerEventData pointerEventData = new PointerEventData(EventSystem.current); //创建一个PointerEventData
+        //    pointerEventData.position = Input.mousePosition; //设置PointerEventData的位置为鼠标位置
+        //    List<RaycastResult> results = new List<RaycastResult>(); //创建一个RaycastResult列表
+        //    EventSystem.current.RaycastAll(pointerEventData, results); //将当前事件系统下所有UI元素都投射一遍射线，并将结果存储在RaycastResult列表中
+        //    if (results.Count > 0) //如果结果列表不为空
+        //    {
+        //        GameObject clickedObject = results[0].gameObject; //获取被点击的UI对象
                 
-                // 在这里处理被点击UI对象的逻辑
-            }
-        }
+        //        // 在这里处理被点击UI对象的逻辑
+        //    }
+        //}
     }
     
     // Track User Click 
