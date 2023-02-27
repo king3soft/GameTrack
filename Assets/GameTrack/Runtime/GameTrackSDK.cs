@@ -191,12 +191,12 @@ public class GameTrackSDK : MonoBehaviour
 #if UNITY_2020_3_OR_NEWER
             if (www.result != UnityWebRequest.Result.Success)
             {
-                Debug.LogFormat("minio upload file: {0} error: {1} / {2}", file, www.error, www.result);
+                Debug.LogFormat("web post upload file: {0} error: {1} / {2}", file, www.error, www.result);
             }
 #else
             if (www.isHttpError || www.isNetworkError)
             {
-                Debug.LogFormat("minio upload file: {0} error: {1}", file, www.error);
+                Debug.LogFormat("web post upload file: {0} error: {1}", file, www.error);
             }
 #endif
             else
@@ -240,12 +240,12 @@ public class GameTrackSDK : MonoBehaviour
 #if UNITY_2020_3_OR_NEWER
             if (www.result != UnityWebRequest.Result.Success)
             {
-                Debug.LogFormat("minio upload file: {0} error: {1} / {2}", file, www.error, www.result);
+                Debug.LogFormat(upload file: {0} error: {1} / {2}", file, www.error, www.result);
             }
 #else
             if (www.isHttpError || www.isNetworkError)
             {
-                Debug.LogFormat("minio upload file: {0} error: {1}", file, www.error);
+                Debug.LogFormat("upload file: {0} error: {1}", file, www.error);
             }
 #endif
             else
