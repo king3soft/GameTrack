@@ -27,8 +27,8 @@ public static class MinioUtils
 
         // create request 
         UnityWebRequest www = UnityWebRequest.Put($"http://{minioHost}{resource}", fileData);
-        www.SetRequestHeader("Host", minioHost);
-        www.SetRequestHeader("Date", date);
+        www.SetRequestHeader("host", minioHost);
+        www.SetRequestHeader("date", date);
         www.SetRequestHeader("Content-Type", contentType);
         www.SetRequestHeader("Authorization", authorization);
 

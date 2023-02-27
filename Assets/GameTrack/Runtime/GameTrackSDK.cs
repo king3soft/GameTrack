@@ -148,10 +148,17 @@ public class GameTrackSDK : MonoBehaviour
             }
             UnityWebRequest www = MinioUtils.CreateUploadFileRequest("gametrack", file.FullName);
             yield return www.SendWebRequest();
+#if UNITY_2020_3_OR_NEWER
             if (www.result != UnityWebRequest.Result.Success)
             {
                 Debug.LogFormat("minio upload file: {0} error: {1} / {2}", file, www.error, www.result);
             }
+#else
+            if (www.isHttpError || www.isNetworkError)
+            {
+                Debug.LogFormat("minio upload file: {0} error: {1}", file, www.error);
+            }
+#endif
             else
             {
                 string text = www.downloadHandler.text;
@@ -181,10 +188,17 @@ public class GameTrackSDK : MonoBehaviour
             }
             UnityWebRequest www = HTTPUtils.CreateUploadFileRequest(file.FullName, file.Name);
             yield return www.SendWebRequest();
+#if UNITY_2020_3_OR_NEWER
             if (www.result != UnityWebRequest.Result.Success)
             {
-                Debug.LogFormat("web post upload file: {0} error: {1} / {2}", file, www.error, www.result);
+                Debug.LogFormat("minio upload file: {0} error: {1} / {2}", file, www.error, www.result);
             }
+#else
+            if (www.isHttpError || www.isNetworkError)
+            {
+                Debug.LogFormat("minio upload file: {0} error: {1}", file, www.error);
+            }
+#endif
             else
             {
                 string text = www.downloadHandler.text;
@@ -223,10 +237,17 @@ public class GameTrackSDK : MonoBehaviour
 
             UnityWebRequest www = UnityWebRequest.Post("https://up-z2.qiniup.com", form);
             yield return www.SendWebRequest();
+#if UNITY_2020_3_OR_NEWER
             if (www.result != UnityWebRequest.Result.Success)
             {
-                Debug.LogFormat("upload file: {0} error: {1} / {2}", file, www.error, www.result);
+                Debug.LogFormat("minio upload file: {0} error: {1} / {2}", file, www.error, www.result);
             }
+#else
+            if (www.isHttpError || www.isNetworkError)
+            {
+                Debug.LogFormat("minio upload file: {0} error: {1}", file, www.error);
+            }
+#endif
             else
             {
                 string text = www.downloadHandler.text;
