@@ -30,7 +30,10 @@ public class GameTrackSDK : MonoBehaviour
     [DllImport("track")]
     private static extern IntPtr /* char const * */ GameTrack_GetToken();
 
-    private void Awake()
+    private bool _Inited = false;
+
+    // Init GamePerf SDK
+    private void Start()
     {
 #if UNITY_ANDROID //&& !UNITY_EDITOR
         // UUID
@@ -57,46 +60,32 @@ public class GameTrackSDK : MonoBehaviour
         
         // Upload Last Files
         // StartCoroutine(UploadData(logFile));
+        
         // send to minio
         StartCoroutine(MinioUpdateFile(logFile));
+        
         // send to web
         // StartCoroutine(WebPostUpdateFile(logFile));
-#endif
-    }
-
-    // Init GamePerf SDK
-    private void Start()
-    {
-#if UNITY_ANDROID //&& !UNITY_EDITOR
+        
         // Track Scene
         SceneManager.sceneLoaded += SceneLoadedTrack;
         
         // Track UI Event
         gameObject.AddComponent<UGUITracker>();
 
-        Debug.Log("GameTrack OnStart");
+        _Inited = true;
 #endif
     }
 
     // Update is called once per frame
     void Update()
     {
-#if UNITY_ANDROID && !UNITY_EDITOR
-        GameTrack_Update(Time.unscaledDeltaTime, Application.targetFrameRate);
+#if UNITY_ANDROID //&& !UNITY_EDITOR
+        if (_Inited)
+        {
+            GameTrack_Update(Time.unscaledDeltaTime, Application.targetFrameRate);
+        }
 #endif
-        //if (Input.GetMouseButtonDown(0)) //检测鼠标左键是否按下
-        //{
-        //    PointerEventData pointerEventData = new PointerEventData(EventSystem.current); //创建一个PointerEventData
-        //    pointerEventData.position = Input.mousePosition; //设置PointerEventData的位置为鼠标位置
-        //    List<RaycastResult> results = new List<RaycastResult>(); //创建一个RaycastResult列表
-        //    EventSystem.current.RaycastAll(pointerEventData, results); //将当前事件系统下所有UI元素都投射一遍射线，并将结果存储在RaycastResult列表中
-        //    if (results.Count > 0) //如果结果列表不为空
-        //    {
-        //        GameObject clickedObject = results[0].gameObject; //获取被点击的UI对象
-                
-        //        // 在这里处理被点击UI对象的逻辑
-        //    }
-        //}
     }
     
     // Track User Click 
@@ -240,7 +229,7 @@ public class GameTrackSDK : MonoBehaviour
 #if UNITY_2020_3_OR_NEWER
             if (www.result != UnityWebRequest.Result.Success)
             {
-                Debug.LogFormat(upload file: {0} error: {1} / {2}", file, www.error, www.result);
+                Debug.LogFormat("upload file: {0} error: {1} / {2}", file, www.error, www.result);
             }
 #else
             if (www.isHttpError || www.isNetworkError)
