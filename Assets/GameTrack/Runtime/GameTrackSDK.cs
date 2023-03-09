@@ -34,6 +34,8 @@ public class GameTrackSDK : MonoBehaviour
 
     public string minioBucket = "abs-publish";
 
+    public GameObject uAutoGameObject = null;
+
     // Init GamePerf SDK
     private void Start()
     {
@@ -74,6 +76,15 @@ public class GameTrackSDK : MonoBehaviour
         
         // Track UI Event
         gameObject.AddComponent<UGUITracker>();
+
+        // Track UAuto Tag Object
+        /**
+        if (uAutoGameObject != null)
+        {
+            UAutoSDK.UAutoSdkInit uauto = uAutoGameObject.GetComponent<UAutoSDK.UAutoSdkInit>();
+            uauto?.AddTapObjectCallback(UserClickTrack);
+        }
+        **/
 
         _Inited = true;
 #endif
