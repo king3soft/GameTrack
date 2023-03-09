@@ -10,18 +10,12 @@ Dev Demo
 
 ## Quick Start
 
----
-
 ### Install
-
----
 
 1. 复制 `GameTrack` 文件夹到项目中。
 2. 挂载 `GameTrackSDK` 组件到全局 GameObject（DontDestroyOnLoad）。
 
 ### Setup
-
----
 
 1. 设置 `Minio Bucket` ，表示数据上传到该 Minio Bucket。
 
