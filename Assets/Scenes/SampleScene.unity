@@ -524,6 +524,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 49f7b256c81ace7459f2f57e80685dfd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  minioBucket: gametrack
 --- !u!1 &1394361037
 GameObject:
   m_ObjectHideFlags: 0

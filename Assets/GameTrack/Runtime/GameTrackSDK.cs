@@ -32,6 +32,8 @@ public class GameTrackSDK : MonoBehaviour
 
     private bool _Inited = false;
 
+    public string minioBucket = "abs-publish";
+
     // Init GamePerf SDK
     private void Start()
     {
@@ -99,12 +101,6 @@ public class GameTrackSDK : MonoBehaviour
     {
         GameTrack_Scene(scene.name);
     }
-    
-    // Save GamePerf
-    // public void Save()
-    // {
-    //     GameTrack_Save(Application.persistentDataPath + "/tmp.txt");
-    // }
 
     private void OnApplicationPause(bool pauseStatus)
     {
@@ -135,7 +131,7 @@ public class GameTrackSDK : MonoBehaviour
                 Debug.LogFormat("File does not exist: {0}", file);
                 continue;
             }
-            UnityWebRequest www = MinioUtils.CreateUploadFileRequest("gametrack", file.FullName);
+            UnityWebRequest www = MinioUtils.CreateUploadFileRequest(minioBucket, file.FullName);
             yield return www.SendWebRequest();
 #if UNITY_2020_3_OR_NEWER
             if (www.result != UnityWebRequest.Result.Success)
