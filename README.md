@@ -21,7 +21,7 @@ Dev Demo
 
 2. 设置监控自动化操作：
 
-   1. 替换项目中的自动化 SDK：`UAutoSDK.dll` 和 `UAutoSdkInit.cs`
+   1. 从 `UAutoSDK` 文件夹获取并替换项目中的自动化 SDK：`UAutoSDK.dll` 和 `UAutoSdkInit.cs`
    2. 将挂载 `UAutoSdkInit` 组件的 GameObject 赋值给 `UAuto Game Object`
    3. 取消 `GameTrackSDK` 以下代码的注释：
 
