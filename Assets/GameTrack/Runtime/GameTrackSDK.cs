@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -22,6 +21,9 @@ public class GameTrackSDK : MonoBehaviour
     private static extern void GameTrack_Flush();
     
     [DllImport("track")]
+    private static extern void GameTrack_Pause(bool bPause);
+    
+    [DllImport("track")]
     private static extern void GameTrack_Event(string eventName);
     
     [DllImport("track")]
@@ -30,9 +32,10 @@ public class GameTrackSDK : MonoBehaviour
     [DllImport("track")]
     private static extern IntPtr /* char const * */ GameTrack_GetToken();
 
-    private bool _Inited = false;
+    private bool _inited;
+    private bool _pause = false;
 
-    public string minioBucket = "abs-publish";
+    private string minioBucket = "track-dev";
 
     public GameObject uAutoGameObject = null;
 
@@ -78,15 +81,15 @@ public class GameTrackSDK : MonoBehaviour
         gameObject.AddComponent<UGUITracker>();
 
         // Track UAuto Tag Object
-        /**
+        /*
         if (uAutoGameObject != null)
         {
             UAutoSDK.UAutoSdkInit uauto = uAutoGameObject.GetComponent<UAutoSDK.UAutoSdkInit>();
             uauto?.AddTapObjectCallback(UserClickTrack);
         }
-        **/
+        */
 
-        _Inited = true;
+        _inited = true;
 #endif
     }
 
@@ -94,7 +97,7 @@ public class GameTrackSDK : MonoBehaviour
     void Update()
     {
 #if UNITY_ANDROID //&& !UNITY_EDITOR
-        if (_Inited)
+        if (_inited && !_pause)
         {
             GameTrack_Update(Time.unscaledDeltaTime, Application.targetFrameRate);
         }
@@ -113,16 +116,14 @@ public class GameTrackSDK : MonoBehaviour
         GameTrack_Scene(scene.name);
     }
 
-    private void OnApplicationPause(bool pauseStatus)
-    {
-#if UNITY_ANDROID && !UNITY_EDITOR
-        // enter background
-        if (pauseStatus == true)
-        {
-            GameTrack_Flush();
-        }
-#endif
-    }
+//     private void OnApplicationPause(bool pauseStatus)
+//     {
+// #if UNITY_ANDROID && !UNITY_EDITOR
+//         _pause = pauseStatus;
+//         // enter background
+//         // GameTrack_Pause(pauseStatus);
+// #endif
+//     }
 
     IEnumerator MinioUpdateFile(string currentFile)
     {
