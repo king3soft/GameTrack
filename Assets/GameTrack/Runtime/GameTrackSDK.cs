@@ -11,25 +11,30 @@ using UnityEngine.SceneManagement;
 
 public class GameTrackSDK : MonoBehaviour
 {
-    [DllImport("track")]
+#if UNITY_IOS && !UNITY_EDITOR
+	const string TRACK_DLL = "__Internal";
+#else
+    const string TRACK_DLL = "track";
+#endif
+    [DllImport(TRACK_DLL)]
     private static extern IntPtr GameTrack_Init(string persistentDataPath, string trackUuid, string baseInfo);
     
-    [DllImport("track")]
+    [DllImport(TRACK_DLL)]
     private static extern void GameTrack_Update(float unscaledDeltaTime, int targetFrameRate);
 
-    [DllImport("track")]
+    [DllImport(TRACK_DLL)]
     private static extern void GameTrack_Flush();
     
-    [DllImport("track")]
+    [DllImport(TRACK_DLL)]
     private static extern void GameTrack_Pause(bool bPause);
     
-    [DllImport("track")]
+    [DllImport(TRACK_DLL)]
     private static extern void GameTrack_Event(string eventName);
     
-    [DllImport("track")]
+    [DllImport(TRACK_DLL)]
     private static extern void GameTrack_Scene(string sceneName);
     
-    [DllImport("track")]
+    [DllImport(TRACK_DLL)]
     private static extern IntPtr /* char const * */ GameTrack_GetToken();
 
     private bool _inited;
@@ -42,7 +47,7 @@ public class GameTrackSDK : MonoBehaviour
     // Init GamePerf SDK
     private void Start()
     {
-#if UNITY_ANDROID //&& !UNITY_EDITOR
+#if UNITY_ANDROID || UNITY_IOS//&& !UNITY_EDITOR
         // UUID
         var localUUID = PlayerPrefs.GetString("track_uuid");
         if (string.IsNullOrEmpty(localUUID))
@@ -96,7 +101,7 @@ public class GameTrackSDK : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-#if UNITY_ANDROID //&& !UNITY_EDITOR
+#if UNITY_ANDROID || UNITY_IOS//&& !UNITY_EDITOR
         if (_inited && !_pause)
         {
             GameTrack_Update(Time.unscaledDeltaTime, Application.targetFrameRate);
@@ -116,14 +121,14 @@ public class GameTrackSDK : MonoBehaviour
         GameTrack_Scene(scene.name);
     }
 
-//     private void OnApplicationPause(bool pauseStatus)
-//     {
-// #if UNITY_ANDROID && !UNITY_EDITOR
-//         _pause = pauseStatus;
-//         // enter background
-//         // GameTrack_Pause(pauseStatus);
-// #endif
-//     }
+    private void OnApplicationPause(bool pauseStatus)
+    {
+#if UNITY_ANDROID || UNITY_IOS
+        _pause = pauseStatus;
+        // enter background
+        GameTrack_Pause(pauseStatus);
+#endif
+    }
 
     IEnumerator MinioUpdateFile(string currentFile)
     {
