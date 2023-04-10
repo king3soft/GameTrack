@@ -101,7 +101,7 @@ public class GameTrackSDK : MonoBehaviour
         // StartCoroutine(UploadData(logFile));
         
         // send to minio
-        // StartCoroutine(MinioUpdateFile(logFile));
+        StartCoroutine(MinioUpdateFile(logFile));
         
         // send to web
         // StartCoroutine(WebPostUpdateFile(logFile));
@@ -110,7 +110,7 @@ public class GameTrackSDK : MonoBehaviour
         SceneManager.sceneLoaded += SceneLoadedTrack;
         
         // Track UI Event
-        gameObject.AddComponent<UGUITracker>();
+        // gameObject.AddComponent<UGUITracker>();
 
         // Track UAuto Tag Object
         /*
