@@ -2,9 +2,11 @@
 
 High Performance GameTrack Plugin
 
-## Setp1:
+## Install:
 
-Copy CameTrack 2 Unity Assets, Add GameTrackSDK.cs, Dont Destory
+Copy CameTrack 2 Unity Assets, Add GameTrackSDK.cs, Dont Destory It
+
+注意: 如果使用NGUI把UGUITracker.cs删除掉
 
 ## Setp2:
 
