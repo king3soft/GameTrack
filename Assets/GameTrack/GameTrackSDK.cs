@@ -35,6 +35,33 @@ public class GameTrackSDK : MonoBehaviour
     private static extern void GameTrack_Scene(string sceneName);
     
     [DllImport(TRACK_DLL)]
+    private static extern void GameTack_S1(string name, string arg1);
+
+    [DllImport(TRACK_DLL)]
+    private static extern void GameTack_S2(string name, string arg1, string arg2);
+
+    [DllImport(TRACK_DLL)]
+    private static extern void GameTack_S3(string name, string arg1, string arg2, string arg3);
+
+    [DllImport(TRACK_DLL)]
+    private static extern void GameTack_I1(string name, int arg1);
+
+    [DllImport(TRACK_DLL)]
+    private static extern void GameTack_I2(string name, int arg1, int arg2);
+
+    [DllImport(TRACK_DLL)]
+    private static extern void GameTack_I3(string name, int arg1, int arg2, int arg3);
+
+    [DllImport(TRACK_DLL)]
+    private static extern void GameTack_F1(string name, float arg1);
+
+    [DllImport(TRACK_DLL)]
+    private static extern void GameTack_F2(string name, float arg1, float arg2);
+
+    [DllImport(TRACK_DLL)]
+    private static extern void GameTack_F3(string name, float arg1, float arg2, float arg3);
+
+    [DllImport(TRACK_DLL)]
     private static extern IntPtr /* char const * */ GameTrack_GetToken();
 
     private bool _inited;
