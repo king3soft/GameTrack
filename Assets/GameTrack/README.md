@@ -1,22 +1,21 @@
-# Android GamePerf Unity plugin
+# GameTrack Unity plugin
+
+High Performance GameTrack Plugin
 
 ## Setp1:
 
+Copy CameTrack 2 Unity Assets, Add GameTrackSDK.cs, Dont Destory
 
 ## Setp2:
 
+S3 Server Config
 
 ## PluginDemo:
 
-https://github.com/king3soft/UAutoDemo_U3D/tree/master/EndlessRunDemo
-
 Unity Version: 2019.3
 
-## PerfData
+## TrackData
 
-Android 9的机器, 需要给WritePermission权限
-/sdcard/game_(ts).perf
+## Log
 
-## 日志过滤
-
-tag: monoInject
+View Device Console
