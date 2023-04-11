@@ -162,7 +162,7 @@ public class GameTrackSDK : MonoBehaviour
         DirectoryInfo directory = new DirectoryInfo(Application.persistentDataPath + "/track_data");
         foreach (FileInfo file in directory.GetFiles())
         {
-            if (file.FullName.Equals(currentFile))
+            if (file.FullName.Contains(currentFile))
                 continue;
             if (file.Length == 0)
             {
