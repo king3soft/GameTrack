@@ -74,7 +74,6 @@ public class GameTrackSDK : MonoBehaviour
     // Init GamePerf SDK
     private void Start()
     {
-#if UNITY_ANDROID || UNITY_IOS
         // UUID
         var localUUID = PlayerPrefs.GetString("track_uuid");
         if (string.IsNullOrEmpty(localUUID))
@@ -98,8 +97,8 @@ public class GameTrackSDK : MonoBehaviour
         string logFile = Marshal.PtrToStringAnsi(pLogFile);
         if (String.IsNullOrEmpty(logFile))
         {
-            //Have No Write Permissions
-            Debug.LogError("GameTrack Init Failed");
+            // Have No Write Permissions
+            // Debug.LogError("GameTrack Init Failed, Have No Write Permissions");
             _inited = false;
             return;
         }
@@ -127,19 +126,17 @@ public class GameTrackSDK : MonoBehaviour
             uauto?.AddTapObjectCallback(UserClickTrack);
         }
         */
+        Debug.Log("GameTrack Inited");
         _inited = true;
-#endif
     }
 
     // Update is called once per frame
     void Update()
     {
-#if UNITY_ANDROID || UNITY_IOS//&& !UNITY_EDITOR
         if (_inited && !_pause)
         {
             GameTrack_Update(Time.unscaledDeltaTime, Application.targetFrameRate);
         }
-#endif
     }
     
     // Track User Click 
@@ -156,11 +153,9 @@ public class GameTrackSDK : MonoBehaviour
 
     private void OnApplicationPause(bool pauseStatus)
     {
-#if UNITY_ANDROID || UNITY_IOS
         _pause = pauseStatus;
         // enter background
         GameTrack_Pause(pauseStatus);
-#endif
     }
 
     IEnumerator MinioUpdateFile(string currentFile)
