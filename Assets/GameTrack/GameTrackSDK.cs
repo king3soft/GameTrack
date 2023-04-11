@@ -74,7 +74,7 @@ public class GameTrackSDK : MonoBehaviour
     // Init GamePerf SDK
     private void Start()
     {
-#if UNITY_ANDROID || UNITY_IOS//&& !UNITY_EDITOR
+#if UNITY_ANDROID || UNITY_IOS
         // UUID
         var localUUID = PlayerPrefs.GetString("track_uuid");
         if (string.IsNullOrEmpty(localUUID))
@@ -94,8 +94,15 @@ public class GameTrackSDK : MonoBehaviour
             SystemInfo.graphicsDeviceVersion);
         
         // Init
-        var _logFile = GameTrack_Init(Application.persistentDataPath, localUUID, baseInfo.ToString());
-        string logFile = Marshal.PtrToStringAnsi(_logFile);
+        var pLogFile = GameTrack_Init(Application.persistentDataPath, localUUID, baseInfo.ToString());
+        string logFile = Marshal.PtrToStringAnsi(pLogFile);
+        if (String.IsNullOrEmpty(logFile))
+        {
+            //Have No Write Permissions
+            Debug.LogError("GameTrack Init Failed");
+            _inited = false;
+            return;
+        }
         
         // Upload Last Files
         // StartCoroutine(UploadData(logFile));
@@ -120,7 +127,6 @@ public class GameTrackSDK : MonoBehaviour
             uauto?.AddTapObjectCallback(UserClickTrack);
         }
         */
-
         _inited = true;
 #endif
     }
