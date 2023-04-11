@@ -108,3 +108,7 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,unity
+
+.idea/
+Packages/
+ProjectSettings/
