@@ -26,6 +26,9 @@ public class GameTrackSDK : MonoBehaviour
     private static extern void GameTrack_Flush();
     
     [DllImport(TRACK_DLL)]
+    public static extern void GameTrack_Upload(string curLog, string bucketName);
+
+    [DllImport(TRACK_DLL)]
     private static extern void GameTrack_Pause(bool bPause);
     
     [DllImport(TRACK_DLL)]
