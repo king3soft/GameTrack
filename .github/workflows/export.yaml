@@ -12,9 +12,9 @@ jobs:
       uses: FrostBanditTeam/extract-unity-package-action@1
       with:
         #Specify the unity project path, relative to the repo root.
-        unityProjectPath: './GameTrack'
+        unityProjectPath: './GameTrack_Demo'
         #Optional: Set the directory to package, relative to the project.
-        #packagePath: 'Assets'
+        packagePath: 'GameTrack'
         #Optional: Set the output path for the package.
         #outputPackagePath: './artifacts/output.unitypackage'
     - name: Upload artifact
