@@ -1,12 +1,11 @@
 using System;
 using System.Collections;
 using System.IO;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.Networking;
-using UnityEngine.Profiling;
 using UnityEngine.SceneManagement;
 
 public class GTrackSDK : MonoBehaviour
@@ -97,22 +96,21 @@ public class GTrackSDK : MonoBehaviour
         
         // BaseInfo
         StringBuilder baseInfo = new StringBuilder();
-        baseInfo.AppendFormat("{0}&{1}&{2}&{3}&{4}&{5}&{6}", (uint)Application.identifier.GetHashCode(), 
-            Application.identifier, 
-            SystemInfo.operatingSystem, 
-            SystemInfo.deviceModel, 
-            SystemInfo.deviceName, 
-            SystemInfo.graphicsDeviceVendor, 
-            SystemInfo.graphicsDeviceVersion);
+        baseInfo.Append("{");
+        baseInfo.Append($"\"identifier\":\"{Application.identifier}\",");
+        baseInfo.Append($"\"identifierCode\":\"{(uint)Application.identifier.GetHashCode()}\",");
+        baseInfo.Append($"\"operatingSystem\":\"{SystemInfo.operatingSystem}\",");
+        baseInfo.Append($"\"deviceModel\":\"{SystemInfo.deviceModel}\",");
+        baseInfo.Append($"\"deviceName\":\"{SystemInfo.deviceName}\",");
+        baseInfo.Append($"\"graphicsDeviceVendor\":\"{SystemInfo.graphicsDeviceVendor}\",");
+        baseInfo.Append($"\"graphicsDeviceVersion\":\"{SystemInfo.graphicsDeviceVersion}\",");
+        baseInfo.Append($"\"ipAddress\":\"{GetLocalIPAddress()}\",");
+        baseInfo.Append($"\"beginTime\":\"{DateTime.Now.ToFileTime()}\"");
+        baseInfo.Append("}");
         
         // Init
         // Debug.Log(baseInfo);
-        var dataDir = Directory.GetParent(Application.persistentDataPath)?.FullName; //dataDir must ansi code, so...
-        //if (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer)
-        {
-            dataDir = Application.persistentDataPath;
-        }
-        var pLogZipFile = GameTrack_Init(dataDir, localUUID, baseInfo.ToString());
+        var pLogZipFile = GameTrack_Init(Application.persistentDataPath, localUUID, baseInfo.ToString());
         _curLogZipFile = Marshal.PtrToStringUni(pLogZipFile);
         if (String.IsNullOrEmpty(_curLogZipFile))
         {
@@ -121,7 +119,11 @@ public class GTrackSDK : MonoBehaviour
             _inited = false;
             return;
         }
-        Debug.Log(_curLogZipFile);
+        
+        // Add MetaInfo
+        File.WriteAllText($"{_curLogZipFile}/meta.json", baseInfo.ToString());
+        
+        //Debug.Log(_curLogZipFile);
         
         // Upload Last Files
         // StartCoroutine(UploadData(logFile));
@@ -183,14 +185,17 @@ public class GTrackSDK : MonoBehaviour
         Debug.Log("GameTrack_OnApplicationQuit");
         if (_inited)
         {
-            // zip the log file
+            // shutdown the log file
             GameTrack_OnDestroy();
             ZipDir(_curLogZipFile);
             bool bOk = MinioUtils.Upload($"{_curLogZipFile}.zip");
-            Debug.Log($"Upload {_curLogZipFile}.zip {bOk}");
+            if (!bOk)
+            {
+                Debug.LogError($"Upload {_curLogZipFile}.zip");
+            }
         }
     }
-
+    
     IEnumerator UpdateMinioFile(string filePath)
     {
         if (File.Exists(filePath))
@@ -348,5 +353,18 @@ public class GTrackSDK : MonoBehaviour
                 File.Delete(file.FullName);
             }
         }
+    }
+    
+    private string GetLocalIPAddress()
+    {
+        IPAddress[] addresses = Dns.GetHostAddresses(Dns.GetHostName());
+        foreach (IPAddress address in addresses)
+        {
+            if (address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+            {
+                return address.ToString();
+            }
+        }
+        return "0.0.0.0";
     }
 }
