@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: c85a5bff1d6842f4ba67ec372be7045c
+guid: 4cbde8582e1d20649b7045aa4f3b6790
 PluginImporter:
   externalObjects: {}
   serializedVersion: 2
@@ -16,19 +16,11 @@ PluginImporter:
     second:
       enabled: 0
       settings:
-        Exclude Android: 0
         Exclude Editor: 0
         Exclude Linux64: 0
         Exclude OSXUniversal: 0
         Exclude Win: 1
         Exclude Win64: 0
-        Exclude iOS: 0
-  - first:
-      Android: Android
-    second:
-      enabled: 1
-      settings:
-        CPU: ARMv7
   - first:
       Any: 
     second:
@@ -39,7 +31,7 @@ PluginImporter:
     second:
       enabled: 1
       settings:
-        CPU: x86_64
+        CPU: AnyCPU
         DefaultValueInitialized: true
         OS: AnyOS
   - first:
@@ -53,28 +45,19 @@ PluginImporter:
     second:
       enabled: 1
       settings:
-        CPU: x86_64
+        CPU: AnyCPU
   - first:
       Standalone: Win
     second:
       enabled: 0
       settings:
-        CPU: None
+        CPU: AnyCPU
   - first:
       Standalone: Win64
     second:
       enabled: 1
       settings:
-        CPU: x86_64
-  - first:
-      iPhone: iOS
-    second:
-      enabled: 1
-      settings:
-        AddToEmbeddedBinaries: false
         CPU: AnyCPU
-        CompileFlags: 
-        FrameworkDependencies: 
   userData: 
   assetBundleName: 
   assetBundleVariant: 
