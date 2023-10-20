@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Data;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
@@ -105,7 +106,7 @@ public class GTrackSDK : MonoBehaviour
         baseInfo.Append($"\"graphicsDeviceVendor\":\"{SystemInfo.graphicsDeviceVendor}\",");
         baseInfo.Append($"\"graphicsDeviceVersion\":\"{SystemInfo.graphicsDeviceVersion}\",");
         baseInfo.Append($"\"ipAddress\":\"{GetLocalIPAddress()}\",");
-        baseInfo.Append($"\"beginTime\":\"{DateTime.Now.ToFileTime()}\"");
+        baseInfo.Append($"\"caseBeginTime\":{DateTimeOffset.Now.ToUnixTimeSeconds()}");
         baseInfo.Append("}");
         
         // Init
