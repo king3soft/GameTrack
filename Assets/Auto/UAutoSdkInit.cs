@@ -8,7 +8,7 @@ public class UAutoInit : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     public static void InitUAutoSdk()
     {
-#if !UNITY_EDITOR
+#if UNITY_EDITOR
         try
         {
             GameObject uautosdk = new GameObject("UAutosdk");
@@ -19,7 +19,7 @@ public class UAutoInit : MonoBehaviour
         }
         catch(Exception ex)
         {
-            Log.Info(string.Format("===== start uautosdk error:{0} =====", ex.Message));
+            Debug.LogError(string.Format("===== start uautosdk error:{0} =====", ex.Message));
         }
 #else
         Debug.Log("Fake InitUAutoSdk");
