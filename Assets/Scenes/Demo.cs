@@ -1,12 +1,41 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+using System.IO;
 using Unity.Profiling;
 using UnityEngine;
 
 public class Demo : MonoBehaviour
 {
     private ProfilerRecorder profilerRecorder;
+
+    private void Awake()
+    {
+        // StartCoroutine(GTrackInit.Init(gameObject));
+        
+        //var enTrackers = new string[] { "PlayerTracker", "UITracker" };
+        // gameObject.AddComponent<GTrackSDK>()?.Init(enTrackers);
+        
+        Debug.LogFormat($"{sizeof(long)}");
+        
+        if (File.Exists($"{Application.persistentDataPath}/GTrack.json"))
+        {
+            try
+            {
+                var sGTrack = File.ReadAllText($"{Application.persistentDataPath}/GTrack.json");
+                GTrackInit.GTrackConf conf = JsonUtility.FromJson<GTrackInit.GTrackConf>(sGTrack);
+                gameObject.AddComponent<GTrackSDK>()?.Init(conf.enTrackers);
+                Debug.Log("InitGTrackSDK(GTrack.json)");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Exception:{e}");
+            }
+        }
+        else
+        {
+            StartCoroutine(GTrackInit.Init(gameObject));    
+        }
+    }
+
     // Start is called before the first frame update
     void Start()
     {

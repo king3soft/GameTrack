@@ -46,20 +46,22 @@ public class UGUITracker: MonoBehaviour
     }
 
     // optimize code
+    StringBuilder uiBuilder = new StringBuilder(1024);
     private string GetGameObjectPath(GameObject obj)
     {
         if (obj == null) return "null";
-
-        var path = new StringBuilder(obj.name);
+        uiBuilder.Clear();
+        uiBuilder.Append(obj.name);
         Transform parentTransform = obj.transform.parent;
 
         while (parentTransform != null)
         {
-            path.Insert(0, parentTransform.name + "/");
+            uiBuilder.Insert(0, "/");
+            uiBuilder.Insert(0, parentTransform.name);
             parentTransform = parentTransform.parent;
         }
 
-        return path.ToString();
+        return uiBuilder.ToString();
     }
 }
 

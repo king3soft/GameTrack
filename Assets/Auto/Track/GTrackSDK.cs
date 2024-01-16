@@ -1,13 +1,13 @@
 using System;
 using System.Collections;
-using System.Data;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
-using System.Text;
 using UnityEngine;
+using System.Threading;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
+// ReSharper disable InconsistentNaming
 
 public class GTrackSDK : MonoBehaviour
 {
@@ -21,10 +21,15 @@ public class GTrackSDK : MonoBehaviour
     
     [DllImport(TRACK_DLL)]
     private static extern void GameTrack_Update(float unscaledDeltaTime, int targetFrameRate);
+    
+    [DllImport(TRACK_DLL)]
+    public static extern void GameTrack_ProfInit(string header);
+    
+    [DllImport(TRACK_DLL)]
+    public static extern void GameTrack_ProfUpdate(long[] others, int length);
 
     [DllImport(TRACK_DLL)]
     private static extern void GameTrack_OnDestroy();
-
     
     [DllImport(TRACK_DLL)]
     private static extern void GameTrack_Flush();
@@ -67,6 +72,15 @@ public class GTrackSDK : MonoBehaviour
 
     [DllImport(TRACK_DLL)]
     public static extern void GameTrack_F3(string name, float arg1, float arg2, float arg3);
+    
+    [DllImport(TRACK_DLL)]
+    public static extern void GameTrack_L1(string name, long arg1);
+
+    [DllImport(TRACK_DLL)]
+    public static extern void GameTrack_L2(string name, long arg1, long arg2);
+
+    [DllImport(TRACK_DLL)]
+    public static extern void GameTrack_L3(string name, long arg1, long arg2, long arg3);
 
     [DllImport(TRACK_DLL)]
     private static extern IntPtr /* char const * */ GameTrack_GetToken();
@@ -84,73 +98,151 @@ public class GTrackSDK : MonoBehaviour
     public GameObject uAutoGameObject = null;
 
     private string _curLogZipFile = null;
-    // Init GamePerf SDK
-    private void Start()
+    
+    // Init GTrack SDK
+    public void Init(string[] enTrackers, bool useLocalTrack=false)
     {
         // UUID
-        var localUUID = PlayerPrefs.GetString("track_uuid");
-        if (string.IsNullOrEmpty(localUUID))
+        var localUuid = PlayerPrefs.GetString("track_uuid");
+        if (string.IsNullOrEmpty(localUuid))
         {
-            localUUID = System.Guid.NewGuid().ToString();
-            PlayerPrefs.SetString("track_uuid", localUUID);
+            localUuid = System.Guid.NewGuid().ToString();
+            PlayerPrefs.SetString("track_uuid", localUuid);
         }
         
-        // BaseInfo
-        StringBuilder baseInfo = new StringBuilder();
-        baseInfo.Append("{");
-        baseInfo.Append($"\"identifier\":\"{Application.identifier}\",");
-        baseInfo.Append($"\"identifierCode\":\"{(uint)Application.identifier.GetHashCode()}\",");
-        baseInfo.Append($"\"operatingSystem\":\"{SystemInfo.operatingSystem}\",");
-        baseInfo.Append($"\"deviceModel\":\"{SystemInfo.deviceModel}\",");
-        baseInfo.Append($"\"deviceName\":\"{SystemInfo.deviceName}\",");
-        baseInfo.Append($"\"graphicsDeviceVendor\":\"{SystemInfo.graphicsDeviceVendor}\",");
-        baseInfo.Append($"\"graphicsDeviceVersion\":\"{SystemInfo.graphicsDeviceVersion}\",");
-        baseInfo.Append($"\"ipAddress\":\"{GetLocalIPAddress()}\",");
-        baseInfo.Append($"\"caseBeginTime\":{DateTimeOffset.Now.ToUnixTimeSeconds()}");
-        baseInfo.Append("}");
-        
-        // Init
-        // Debug.Log(baseInfo);
-        var pLogZipFile = GameTrack_Init(Application.persistentDataPath, localUUID, baseInfo.ToString());
-        _curLogZipFile = Marshal.PtrToStringUni(pLogZipFile);
-        if (String.IsNullOrEmpty(_curLogZipFile))
+        DateTimeOffset beginTime = DateTimeOffset.UtcNow;
+        try
         {
-            // Have No Write Permissions
-            Debug.LogError("GameTrack Init Failed, Have No Write Permissions");
-            _inited = false;
-            return;
-        }
+            // MetaInfo
+            MetaInfo metaInfo = new MetaInfo
+            {
+                identifier = Application.identifier,
+                identifierCode = $"{(uint)Application.identifier.GetHashCode()}",
+                version = Application.version,
+                operatingSystem = SystemInfo.operatingSystem,
+                deviceModel = SystemInfo.deviceModel,
+                deviceName = SystemInfo.deviceName,
+                processorType = SystemInfo.processorType,
+                systemMemorySize = $"{SystemInfo.systemMemorySize}MB",
+                graphicsDeviceID = SystemInfo.graphicsDeviceID.ToString(),
+                graphicsDeviceVendor = SystemInfo.graphicsDeviceName,
+                graphicsDeviceVersion = SystemInfo.graphicsDeviceVersion,
+                graphicsMemorySize = $"{SystemInfo.graphicsMemorySize}MB",
+                ipAddress = GetLocalIPAddress(),
+                localUUID = localUuid,
+                useLocalTrack = useLocalTrack,
+                enTrackers = enTrackers,
+                beginTime = beginTime.ToUnixTimeMilliseconds()
+            };
+            var sMetaInfo = JsonUtility.ToJson(metaInfo);
+            
+            // Init
+            string joinedTrackers = string.Join(",", enTrackers);
+            var pLogZipFile = GameTrack_Init(Application.persistentDataPath, localUuid, joinedTrackers);
+            _curLogZipFile = Marshal.PtrToStringUni(pLogZipFile);
+            if (String.IsNullOrEmpty(_curLogZipFile))
+            {
+                // Have No Write Permissions
+                Debug.LogError("GameTrack Init Failed, Have No Write Permissions");
+                _inited = false;
+                return;
+            }
         
-        // Add MetaInfo
-        File.WriteAllText($"{_curLogZipFile}/meta.json", baseInfo.ToString());
+            // Add MetaInfo
+            File.WriteAllText($"{_curLogZipFile}/meta.json", sMetaInfo);
+            
+            // Track Scene
+            SceneManager.sceneLoaded += SceneLoadedTrack;
         
-        //Debug.Log(_curLogZipFile);
-        
-        // Upload Last Files
-        // StartCoroutine(UploadData(logFile));
-        
-        // send to minio
-        // StartCoroutine(MinioUpdateFile(logFile));
-        
-        // send to web
-        // StartCoroutine(WebPostUpdateFile(logFile));
-        
-        // Track Scene
-        SceneManager.sceneLoaded += SceneLoadedTrack;
-        
-        // Track UI Event
-        gameObject.AddComponent<UGUITracker>();
+            // Track UI Event
+            gameObject.AddComponent<UGUITracker>();
 
-        // Track UAuto Tag Object
-        /*
-        if (uAutoGameObject != null)
-        {
-            UAutoSDK.UAutoSdkInit uauto = uAutoGameObject.GetComponent<UAutoSDK.UAutoSdkInit>();
-            uauto?.AddTapObjectCallback(UserClickTrack);
+            // Track UAuto Tag Object
+            /*
+            if (uAutoGameObject != null)
+            {
+                UAutoSDK.UAutoSdkInit uauto = uAutoGameObject.GetComponent<UAutoSDK.UAutoSdkInit>();
+                uauto?.AddTapObjectCallback(UserClickTrack);
+            }
+            */
+            GTracks.RegisterTracker(new UITracker());
+            //GTracks.Get<UITracker>()?.EnableTrack(true);
+            
+            GTracks.RegisterTracker(new SceneLoadTracker());
+            GTracks.Get<SceneLoadTracker>()?.EnableTrack(true);
+            
+            // PlayerTracker
+            GTracks.RegisterTracker(new PlayerTracker());
+            
+            // LogMaskTracker
+            GTracks.RegisterTracker(new LogMaskTracker());
+            // SSMTracker
+            // GTracks.RegisterTracker(new SSMTracker());
+            if(enTrackers != null)
+            {
+                foreach (var t in enTrackers)
+                {
+                    try
+                    {
+                        if (t.Equals("ProfilerTracker")) {
+                            gameObject.AddComponent<ProfilerTracker>();
+                            continue;
+                        }
+                        GTracks.Get(t)?.EnableTrack(true);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError($"[GTrack]EnableTrack Exception:{e}");
+                    }
+                }
+            }
+
+            // Upload remain data 
+            string trackDir = $"{Application.persistentDataPath}/track_data";
+            ThreadPool.QueueUserWorkItem((System.Object stateInfo) => {
+                UploadFailedTrackData(trackDir);
+            });
+            
+            _inited = true;
+            var ts = beginTime.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss");
+            //Crasheye.AddExtraData("beginTime", ts);
+            Debug.LogFormat("[GTrack]GTrack Init Succeed. beginTime: {0}", ts);
         }
-        */
-        Debug.Log("GameTrack Inited");
-        _inited = true;
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+        }
+    }
+    
+    void UploadFailedTrackData(string trackDir)
+    {
+        try
+        {
+            var curFileDir = Path.GetFileName(_curLogZipFile);
+            foreach (var dir in Directory.GetDirectories(trackDir))
+            {
+                //dir.get
+                string folderName = Path.GetFileName(dir);
+                if (string.Equals(curFileDir, folderName, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+                string zipFileDir = $"{trackDir}/{folderName}";
+                string zipFilePath = $"{zipFileDir}.zip";
+                ZipDir(zipFileDir);
+                bool bOk = MinioUtils.Upload(zipFilePath);
+                if (bOk && !string.IsNullOrEmpty(zipFilePath))
+                {
+                    // Directory.Delete(zipFileDir, true);
+                    // File.Delete(zipFilePath);
+                }
+            }
+
+        }
+        catch (Exception e)
+        {
+            // ignored
+        }
     }
 
     // Update is called once per frame
@@ -192,7 +284,15 @@ public class GTrackSDK : MonoBehaviour
             bool bOk = MinioUtils.Upload($"{_curLogZipFile}.zip");
             if (!bOk)
             {
-                Debug.LogError($"Upload {_curLogZipFile}.zip");
+                Debug.LogError($"Upload {_curLogZipFile}.zip Error");
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(_curLogZipFile))
+                {
+                    // Directory.Delete(_curLogZipFile, true);
+                    // File.Delete($"{_curLogZipFile}.zip");
+                }
             }
         }
     }
@@ -367,5 +467,26 @@ public class GTrackSDK : MonoBehaviour
             }
         }
         return "0.0.0.0";
+    }
+    [System.Serializable]
+    private class MetaInfo
+    {
+        public string identifier;
+        public string identifierCode;
+        public string version;
+        public string operatingSystem;
+        public string deviceModel;
+        public string deviceName;
+        public string processorType;
+        public string systemMemorySize;
+        public string graphicsDeviceID;
+        public string graphicsDeviceVendor;
+        public string graphicsDeviceVersion;
+        public string graphicsMemorySize;
+        public string ipAddress;
+        public string localUUID;
+        public bool useLocalTrack;
+        public string[] enTrackers;
+        public long beginTime;
     }
 }
